@@ -1,4 +1,3 @@
-# nft-marketplace
 
 ## Setup
 Soroban contracts are small programs written in the Rust programming language.
@@ -79,6 +78,11 @@ soroban contract deploy \
     --rpc-url http://localhost:8000/soroban/rpc \
     --network-passphrase 'Test SDF Future Network ; October 2022'
 ```
+ We can also connect to `remote` futurenet node by using `--rpc-url`
+ ```
+--rpc-url https://rpc-futurenet.stellar.org:443
+```
+ 
  A contract ID will be outputted.
 ```
 cd4dae2c409c433b1e1d83994a20214d3e5f60bdd3a817978d8aa7c797864313
