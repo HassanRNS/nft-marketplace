@@ -65,10 +65,15 @@ impl Contract {
         return symbol;
     }
 
-    pub fn set_admin(e: Env, new_admin: Address) {
-        let admin = read_administrator(&e);
+    pub fn set_admin(env: Env, new_admin: Address) {
+        let admin = read_administrator(&env);
         admin.require_auth();
-        write_administrator(&e, &new_admin);
-        event::set_admin(&e, admin, new_admin);
+        write_administrator(&env, &new_admin);
+        event::set_admin(&env, admin, new_admin);
+    }
+
+    pub fn current_nft_supply(env: Env) -> u32 {
+        let supply = get_nft_counter(&env);
+        return supply;
     }
 }
