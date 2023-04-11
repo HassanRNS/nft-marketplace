@@ -3,6 +3,9 @@ mod admin;
 mod event;
 mod metadata;
 mod storage_types;
+
+use core::ptr::null;
+
 use crate::admin::{get_nft_counter, has_administrator, read_administrator, write_administrator};
 use crate::metadata::TokenMetadata;
 
@@ -22,35 +25,18 @@ impl Contract {
     pub fn ping(env: Env, from: Symbol) -> Vec<Symbol> {
         vec![&env, Symbol::short("Hello"), from]
     }
-    pub fn mint_nft(env: Env) {
+    pub fn mint_nft(env: Env, to: Address) {
         let admin = read_administrator(&env);
         admin.require_auth();
         let new_token_id = get_nft_counter(&env);
 
         let metadata = TokenMetadata {
             id: new_token_id,
-            name: Symbol::short(""),
+            tokenURI: Symbol::short(""),
+            owner: to,
         };
         env.storage().set(&metadata.id, &metadata);
         env.storage().set(&"nftCounter", &(new_token_id + 1));
-    }
-
-    pub fn update_nft_metadata(env: Env, id: u32, name: Symbol) {
-        let admin = read_administrator(&env);
-        admin.require_auth();
-        let symbol_result = env.storage().get_unchecked(&id);
-        let old_metadata: TokenMetadata = match symbol_result {
-            Ok(s) => s,
-            Err(_e) => TokenMetadata {
-                id: (0),
-                name: (Symbol::short("ERROR")),
-            },
-        };
-        let new_metadata = TokenMetadata {
-            id: old_metadata.id,
-            name: name,
-        };
-        env.storage().set(&new_metadata.id, &new_metadata);
     }
 
     pub fn get_nft(env: Env, id: u32) -> TokenMetadata {
@@ -59,7 +45,8 @@ impl Contract {
             Ok(s) => s,
             Err(_e) => TokenMetadata {
                 id: (0),
-                name: (Symbol::short("ERROR")),
+                tokenURI: (Symbol::short("ERROR")),
+                owner: ,
             },
         };
         return symbol;
