@@ -9,7 +9,7 @@ fn test() {
     let contract_id = env.register_contract(None, Contract);
     let client = ContractClient::new(&env, &contract_id);
 
-    let words = client.hello(&Symbol::short("Dev"));
+    let words = client.ping(&Symbol::short("Dev"));
     assert_eq!(
         words,
         vec![&env, Symbol::short("Hello"), Symbol::short("Dev"),]
