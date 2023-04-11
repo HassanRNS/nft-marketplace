@@ -12,3 +12,11 @@ pub fn get_nft_counter(e: &Env) -> u32 {
     };
     return counter;
 }
+pub fn total_supply(e: &Env) -> u32 {
+    let total_supply_result = e.storage().get_unchecked(&"nftSupply");
+    let total_supply: u32 = match total_supply_result {
+        Ok(i) => i,
+        Err(_e) => 0,
+    };
+    return total_supply;
+}
