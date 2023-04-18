@@ -13,10 +13,6 @@ pub fn is_authorized(e: &Env, addr: Address) -> bool {
     return auth;
 }
 
-// pub fn read_authorization(e: &Env) -> Address {
-//     let key = DataKey::State(Address);
-//     e.storage().get_unchecked(&key).unwrap()
-// }
 pub fn write_authorization(e: &Env, addr: Address, is_authorized: bool) {
     let key = DataKey::State(addr);
     e.storage().set(&key, &is_authorized);

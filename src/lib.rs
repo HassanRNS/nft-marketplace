@@ -1,16 +1,14 @@
+#![no_std]
 mod admin;
 mod authorize;
 mod event;
 mod metadata;
 mod storage_types;
+
 use crate::admin::{has_administrator, read_administrator, write_administrator};
 use crate::authorize::{is_authorized, write_authorization};
-use crate::metadata::{get_nft_counter, total_supply, TokenMetadata};
-
-use metadata::get_base_uri;
-use soroban_sdk::{contractimpl, vec, Address, Env, Symbol, Vec};
-use std::panic;
-use std::string::String;
+use crate::metadata::{get_base_uri, get_nft_counter, total_supply, TokenMetadata};
+use soroban_sdk::{contractimpl, vec, Address, Env, String, Symbol, Vec};
 pub struct Contract;
 
 #[contractimpl]
@@ -22,6 +20,10 @@ impl Contract {
         write_administrator(&env, &admin);
         write_authorization(&env, admin, true);
         env.storage().set(&"nftCounter", &(0));
+        env.storage().set(
+            &"baseURI",
+            &"https://gateway.pinata.cloud/ipfs/QmVxgKAbxYwVLPNE2DQwXvimhmuW5wtk2YHiZaJCkLCUCG/",
+        );
         env.storage().set(&"nftSupply", &supply);
     }
 
@@ -34,21 +36,19 @@ impl Contract {
         }
         to.require_auth();
         let new_token_id = get_nft_counter(&env);
-
         let base_uri = get_base_uri(&env);
-        let token_id_string = new_token_id.to_string();
-        let extension = ".json".to_string();
-
-        let token_uri = format!("{}{}{}", base_uri, token_id_string, extension);
+        if get_nft_counter(&env) >= total_supply(&env) {
+            panic!("MAX SUPPLY REACHED")
+        }
 
         let metadata = TokenMetadata {
             id: new_token_id,
-            token_uri: token_uri,
-            owner: to,
+            token_base_uri: base_uri,
+            owner: to.clone(),
         };
-        env.storage().set(&new_token_id, &metadata);
+        env.storage().set(&metadata.id, &metadata);
         env.storage().set(&"nftCounter", &(new_token_id + 1));
-        event::mint(&env, to, metadata.id)
+        event::mint(&env, to, new_token_id)
     }
 
     pub fn set_base_uri(env: Env, base_uri: String) {
@@ -71,7 +71,27 @@ impl Contract {
         };
         return symbol;
     }
+    pub fn owner_of(env: Env, id: u32) -> Address {
+        let token_result = env.storage().get_unchecked(&id);
+        let token: TokenMetadata = match token_result {
+            Ok(s) => s,
+            Err(_e) => {
+                panic!("Token not found")
+            }
+        };
+        return token.owner;
+    }
 
+    pub fn token_base_uri(env: Env, id: u32) -> String {
+        let token_result = env.storage().get_unchecked(&id);
+        let token: TokenMetadata = match token_result {
+            Ok(s) => s,
+            Err(_e) => {
+                panic!("Token not found")
+            }
+        };
+        return token.token_base_uri;
+    }
     pub fn set_admin(env: Env, new_admin: Address) {
         let admin = read_administrator(&env);
         admin.require_auth();
